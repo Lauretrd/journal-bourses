@@ -10,13 +10,13 @@ import analysis as an
 
 st.set_page_config(page_title="Carnet de bourse", page_icon="📖", layout="wide")
 
-INK = "#1B2A4A"
+INK = "#efead7"
 BRASS = "#A67C3D"
 SAGE = "#4C6B4F"
 BRICK = "#A44A3F"
-PAPER = "#EDE8DD"
-PAPER_DARK = "#E3DDCE"
-LINE = "#C9C2B0"
+PAPER = "#0B0528"
+PAPER_DARK = "#1B1268"
+LINE = "#E4DFD2"
 
 st.markdown(f"""
 <style>
