@@ -15,6 +15,10 @@ COMMODITY_SEARCH_TERMS = {
     "SI=F": "silver price",
     "CL=F": "WTI crude oil",
     "BZ=F": "Brent crude oil",
+    "XAUUSD=X": "gold price",
+    "XAGUSD=X": "silver price",
+    "NG=F": "natural gas price",
+    "HG=F": "copper price",
 }
 
 FR_TO_EN_SEARCH_TERMS = {
@@ -22,6 +26,22 @@ FR_TO_EN_SEARCH_TERMS = {
     "gaz naturel": "natural gas", "cuivre": "copper", "platine": "platinum",
     "blé": "wheat", "ble": "wheat", "maïs": "corn", "mais": "corn",
     "café": "coffee", "cafe": "coffee", "sucre": "sugar", "coton": "cotton",
+}
+
+# Symboles utilisés sur les plateformes de trading (MetaTrader, TradingView...)
+# qui ne correspondent pas directement à la notation Yahoo Finance.
+# Note : ce sont des prix "spot" (comptant), légèrement différents des futures (ex: GC=F).
+TRADING_SYMBOL_ALIASES = {
+    "XAUUSD": ("XAUUSD=X", "Or (spot / comptant)"),
+    "XAGUSD": ("XAGUSD=X", "Argent (spot / comptant)"),
+    "USOIL": ("CL=F", "Pétrole WTI"),
+    "WTIUSD": ("CL=F", "Pétrole WTI"),
+    "UKOIL": ("BZ=F", "Pétrole Brent"),
+    "BRENTUSD": ("BZ=F", "Pétrole Brent"),
+    "NATGASUSD": ("NG=F", "Gaz naturel"),
+    "COPPERUSD": ("HG=F", "Cuivre"),
+    "BTCUSD": ("BTC-USD", "Bitcoin"),
+    "ETHUSD": ("ETH-USD", "Ethereum"),
 }
 
 IMPORTANT_RELEASES = [
@@ -34,9 +54,26 @@ IMPORTANT_RELEASES = [
 # ---------- Recherche ----------
 
 def search_symbol(query, max_results=8):
-    search_term = FR_TO_EN_SEARCH_TERMS.get(query.lower().strip(), query)
+    query_clean = query.strip()
+
+    # 1. Vérifie d'abord si c'est un symbole de trading connu (ex: XAUUSD)
+    alias_match = TRADING_SYMBOL_ALIASES.get(query_clean.upper())
+    alias_results = []
+    if alias_match:
+        yahoo_symbol, label = alias_match
+        alias_results = [{
+            "symbol": yahoo_symbol,
+            "shortname": f"{label} — équivalent Yahoo Finance de {query_clean.upper()}",
+            "quoteType": "ALIAS",
+        }]
+
+    # 2. Recherche classique (avec traduction FR->EN si besoin)
+    search_term = FR_TO_EN_SEARCH_TERMS.get(query_clean.lower(), query_clean)
     search = yf.Search(search_term, max_results=max_results)
-    return search.quotes
+    regular_results = search.quotes
+
+    # L'alias apparaît en premier s'il existe, suivi des résultats classiques
+    return alias_results + regular_results
 
 
 # ---------- Données ----------
